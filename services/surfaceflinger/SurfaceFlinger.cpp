@@ -7360,7 +7360,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::captureScreenshot(
     SFTRACE_CALL();
 
     ScreenCaptureResults captureResults;
-    std::unique_ptr<const RenderArea> renderArea =
+    std::shared_ptr<const RenderArea> renderArea =
             std::visit([](auto&& arg) -> std::unique_ptr<RenderArea> { return arg.build(); },
                        renderAreaBuilder);
 
@@ -7378,7 +7378,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::captureScreenshot(
     // Empty vector needed to pass into renderScreenImpl for legacy path
     std::vector<std::pair<Layer*, sp<android::LayerFE>>> layers;
     ftl::SharedFuture<FenceResult> renderFuture =
-            renderScreenImpl(renderArea.get(), buffer, regionSampling, grayscale, isProtected,
+            renderScreenImpl(renderArea, buffer, regionSampling, grayscale, isProtected,
                              attachGainmap, captureResults, displayState, layers, layerFEs);
 
     if (captureResults.capturedHdrLayers && attachGainmap &&
@@ -7413,7 +7413,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::captureScreenshot(
                                                                  Usage::WRITEABLE);
             ScreenCaptureResults unusedResults;
             ftl::SharedFuture<FenceResult> hdrRenderFuture =
-                    renderScreenImpl(renderArea.get(), hdrTexture, regionSampling, grayscale,
+                    renderScreenImpl(renderArea, hdrTexture, regionSampling, grayscale,
                                      isProtected, attachGainmap, unusedResults, displayState,
                                      layers, layerFEs);
 
@@ -7479,7 +7479,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::captureScreenshotLegacy(
         auto displayState = getDisplayStateFromRenderAreaBuilder(renderAreaBuilder);
 
         ScreenCaptureResults captureResults;
-        std::unique_ptr<const RenderArea> renderArea =
+        std::shared_ptr<const RenderArea> renderArea =
                 std::visit([](auto&& arg) -> std::unique_ptr<RenderArea> { return arg.build(); },
                            renderAreaBuilder);
 
@@ -7494,7 +7494,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::captureScreenshotLegacy(
 
         auto layerFEs = extractLayerFEs(layers);
         ftl::SharedFuture<FenceResult> renderFuture =
-                renderScreenImpl(renderArea.get(), buffer, regionSampling, grayscale, isProtected,
+                renderScreenImpl(renderArea, buffer, regionSampling, grayscale, isProtected,
                                  attachGainmap, captureResults, displayState, layers, layerFEs);
 
         if (captureListener) {
@@ -7525,7 +7525,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::captureScreenshotLegacy(
 }
 
 ftl::SharedFuture<FenceResult> SurfaceFlinger::renderScreenImpl(
-        const RenderArea* renderArea, const std::shared_ptr<renderengine::ExternalTexture>& buffer,
+        std::shared_ptr<const RenderArea> renderArea, const std::shared_ptr<renderengine::ExternalTexture>& buffer,
         bool regionSampling, bool grayscale, bool isProtected, bool attachGainmap,
         ScreenCaptureResults& captureResults, std::optional<OutputCompositionState>& displayState,
         std::vector<std::pair<Layer*, sp<LayerFE>>>& layers, std::vector<sp<LayerFE>>& layerFEs) {
@@ -7637,7 +7637,7 @@ ftl::SharedFuture<FenceResult> SurfaceFlinger::renderScreenImpl(
         std::shared_ptr<ScreenCaptureOutput> output = createScreenCaptureOutput(
                 ScreenCaptureOutputArgs{.compositionEngine = *compositionEngine,
                                         .colorProfile = colorProfile,
-                                        .renderArea = *renderArea,
+                                        .renderArea = renderArea,
                                         .layerStack = layerStack,
                                         .buffer = std::move(buffer),
                                         .sdrWhitePointNits = sdrWhitePointNits,

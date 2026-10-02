@@ -1326,6 +1326,16 @@ int Surface::queueBuffers(const std::vector<BatchQueuedBuffer>& buffers)
     return err;
 }
 
+#if COM_ANDROID_GRAPHICS_LIBGUI_FLAGS(WB_PLATFORM_API_IMPROVEMENTS)
+int Surface::queueBuffer(android_native_buffer_t* buffer, int fenceFd) {
+    return queueBuffer(buffer, fenceFd, nullptr);
+}
+
+int Surface::queueBuffers(const std::vector<BatchQueuedBuffer>& buffers) {
+    return queueBuffers(buffers, nullptr);
+}
+#endif
+
 #else
 
 int Surface::queueBuffer(android_native_buffer_t* buffer, int fenceFd) {

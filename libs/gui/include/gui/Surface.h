@@ -370,11 +370,10 @@ private:
 protected:
     virtual int dequeueBuffer(ANativeWindowBuffer** buffer, int* fenceFd);
     virtual int cancelBuffer(ANativeWindowBuffer* buffer, int fenceFd);
+    virtual int queueBuffer(ANativeWindowBuffer* buffer, int fenceFd);
 #if COM_ANDROID_GRAPHICS_LIBGUI_FLAGS(WB_PLATFORM_API_IMPROVEMENTS)
     virtual int queueBuffer(ANativeWindowBuffer* buffer, int fenceFd,
-                            SurfaceQueueBufferOutput* surfaceOutput = nullptr);
-#else
-    virtual int queueBuffer(ANativeWindowBuffer* buffer, int fenceFd);
+                            SurfaceQueueBufferOutput* surfaceOutput);
 #endif // COM_ANDROID_GRAPHICS_LIBGUI_FLAGS(WB_PLATFORM_API_IMPROVEMENTS)
     virtual int perform(int operation, va_list args);
     virtual int setSwapInterval(int interval);
@@ -456,12 +455,11 @@ public:
         int fenceFd = -1;
         nsecs_t timestamp = NATIVE_WINDOW_TIMESTAMP_AUTO;
     };
-#if COM_ANDROID_GRAPHICS_LIBGUI_FLAGS(WB_PLATFORM_API_IMPROVEMENTS)
-    virtual int queueBuffers(const std::vector<BatchQueuedBuffer>& buffers,
-                             std::vector<SurfaceQueueBufferOutput>* queueBufferOutputs = nullptr);
-#else
     virtual int queueBuffers(
             const std::vector<BatchQueuedBuffer>& buffers);
+#if COM_ANDROID_GRAPHICS_LIBGUI_FLAGS(WB_PLATFORM_API_IMPROVEMENTS)
+    virtual int queueBuffers(const std::vector<BatchQueuedBuffer>& buffers,
+                             std::vector<SurfaceQueueBufferOutput>* queueBufferOutputs);
 #endif // COM_ANDROID_GRAPHICS_LIBGUI_FLAGS(WB_PLATFORM_API_IMPROVEMENTS)
 
 protected:

@@ -55,7 +55,7 @@ GaneshBackendTexture::GaneshBackendTexture(sk_sp<GrDirectContext> grContext,
                                                              desc.height, &mDeleteProc,
                                                              &mUpdateProc, &mImageCtx,
                                                              createProtectedImage, backendFormat,
-                                                             isOutputBuffer);
+                                                             true); // Use GL_TEXTURE_2D for legacy Adreno EGLImage input.
     } else if (graphicsApi == GrBackendApi::kVulkan) {
         backendFormat = GrAHardwareBufferUtils::GetVulkanBackendFormat(grContext.get(), buffer,
                                                                        desc.format, false);

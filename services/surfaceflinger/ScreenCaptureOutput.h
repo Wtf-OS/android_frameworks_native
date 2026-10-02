@@ -28,7 +28,7 @@ namespace android {
 struct ScreenCaptureOutputArgs {
     const compositionengine::CompositionEngine& compositionEngine;
     const compositionengine::Output::ColorProfile& colorProfile;
-    const RenderArea& renderArea;
+    std::shared_ptr<const RenderArea> renderArea;
     ui::LayerStack layerStack;
     std::shared_ptr<renderengine::ExternalTexture> buffer;
     float sdrWhitePointNits;
@@ -48,7 +48,7 @@ struct ScreenCaptureOutputArgs {
 // SurfaceFlinger::captureLayers and SurfaceFlinger::captureDisplay.
 class ScreenCaptureOutput : public compositionengine::impl::Output {
 public:
-    ScreenCaptureOutput(const RenderArea& renderArea,
+    ScreenCaptureOutput(std::shared_ptr<const RenderArea> renderArea,
                         const compositionengine::Output::ColorProfile& colorProfile,
                         bool regionSampling, bool dimInGammaSpaceForEnhancedScreenshots,
                         bool enableLocalTonemapping);
@@ -65,7 +65,7 @@ protected:
             const std::shared_ptr<renderengine::ExternalTexture>& buffer) const override;
 
 private:
-    const RenderArea& mRenderArea;
+    const std::shared_ptr<const RenderArea> mRenderArea;
     const compositionengine::Output::ColorProfile& mColorProfile;
     const bool mRegionSampling;
     const bool mDimInGammaSpaceForEnhancedScreenshots;
