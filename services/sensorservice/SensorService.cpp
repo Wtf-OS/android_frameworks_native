@@ -312,6 +312,7 @@ void SensorService::onFirstRef() {
             bool hasGyroUncalibrated = false;
             bool hasAccelUncalibrated = false;
             uint32_t virtualSensorsNeeds =
+                    (1<<SENSOR_TYPE_ORIENTATION) |
                     (1<<SENSOR_TYPE_GRAVITY) |
                     (1<<SENSOR_TYPE_LINEAR_ACCELERATION) |
                     (1<<SENSOR_TYPE_ROTATION_VECTOR) |
@@ -407,6 +408,11 @@ void SensorService::onFirstRef() {
             }
 
             if (hasAccel && hasMag) {
+                if (!hasGyro && !hasGyroUncalibrated &&
+                        (virtualSensorsNeeds & (1<<SENSOR_TYPE_ORIENTATION))) {
+                    registerVirtualSensor(std::make_shared<OrientationSensor>(FUSION_NOGYRO),
+                                          /* isDebug= */ false);
+                }
                 bool needGeoMagRotationVector =
                         (virtualSensorsNeeds & (1<<SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR)) != 0;
                 registerVirtualSensor(std::make_shared<GeoMagRotationVectorSensor>(),

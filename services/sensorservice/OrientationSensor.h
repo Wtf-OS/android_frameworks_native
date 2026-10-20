@@ -23,6 +23,7 @@
 #include <sensor/Sensor.h>
 
 #include "SensorInterface.h"
+#include "SensorFusion.h"
 
 // ---------------------------------------------------------------------------
 namespace android {
@@ -33,10 +34,12 @@ class SensorFusion;
 
 class OrientationSensor : public VirtualSensor {
 public:
-    OrientationSensor();
+    explicit OrientationSensor(int mode = FUSION_9AXIS);
     virtual bool process(sensors_event_t* outEvent, const sensors_event_t& event) override;
     virtual status_t activate(void* ident, bool enabled) override;
     virtual status_t setDelay(void* ident, int handle, int64_t ns) override;
+private:
+    const int mMode;
 };
 
 // ---------------------------------------------------------------------------

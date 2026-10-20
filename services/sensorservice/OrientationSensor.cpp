@@ -29,7 +29,7 @@
 namespace android {
 // ---------------------------------------------------------------------------
 
-OrientationSensor::OrientationSensor() {
+OrientationSensor::OrientationSensor(int mode) : mMode(mode) {
     const sensor_t sensor = {
         .name       = "Orientation Sensor",
         .vendor     = "AOSP",
@@ -38,7 +38,7 @@ OrientationSensor::OrientationSensor() {
         .type       = SENSOR_TYPE_ORIENTATION,
         .maxRange   = 360.0f,
         .resolution = 1.0f/256.0f, // FIXME: real value here
-        .power      = mSensorFusion.getPowerUsage(),
+        .power      = mSensorFusion.getPowerUsage(mMode),
         .minDelay   = mSensorFusion.getMinDelay(),
     };
     mSensor = Sensor(&sensor);
@@ -49,10 +49,10 @@ bool OrientationSensor::process(sensors_event_t* outEvent,
 {
     if (event.type == mSensorFusion.getAccelType() &&
             event.sensor == mSensorFusion.getAccelHandle()) {
-        if (mSensorFusion.hasEstimate()) {
+        if (mSensorFusion.hasEstimate(mMode)) {
             vec3_t g;
             const float rad2deg = 180 / M_PI;
-            const mat33_t R(mSensorFusion.getRotationMatrix());
+            const mat33_t R(mSensorFusion.getRotationMatrix(mMode));
             g[0] = atan2f(-R[1][0], R[0][0])    * rad2deg;
             g[1] = atan2f(-R[2][1], R[2][2])    * rad2deg;
             g[2] = asinf ( R[2][0])             * rad2deg;
@@ -63,7 +63,8 @@ bool OrientationSensor::process(sensors_event_t* outEvent,
             outEvent->orientation.azimuth = g.x;
             outEvent->orientation.pitch   = g.y;
             outEvent->orientation.roll    = g.z;
-            outEvent->orientation.status  = SENSOR_STATUS_ACCURACY_HIGH;
+            outEvent->orientation.status  = mMode == FUSION_NOGYRO
+                    ? SENSOR_STATUS_UNRELIABLE : SENSOR_STATUS_ACCURACY_HIGH;
             outEvent->sensor = '_ypr';
             outEvent->type = SENSOR_TYPE_ORIENTATION;
             return true;
@@ -73,11 +74,11 @@ bool OrientationSensor::process(sensors_event_t* outEvent,
 }
 
 status_t OrientationSensor::activate(void* ident, bool enabled) {
-    return mSensorFusion.activate(FUSION_9AXIS, ident, enabled);
+    return mSensorFusion.activate(mMode, ident, enabled);
 }
 
 status_t OrientationSensor::setDelay(void* ident, int /*handle*/, int64_t ns) {
-    return mSensorFusion.setDelay(FUSION_9AXIS, ident, ns);
+    return mSensorFusion.setDelay(mMode, ident, ns);
 }
 
 // ---------------------------------------------------------------------------
